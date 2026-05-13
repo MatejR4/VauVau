@@ -18,12 +18,12 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
-    onNavigateToFavorites: () -> Unit,
+fun FavoritesScreen(
+    onNavigateToHome: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
-    // Provjera teme sustava i definiranje boja za Dark Mode
+    // Provjera teme sustava za dosljedan dizajn
     val isDarkMode = isSystemInDarkTheme()
     val backgroundColor = if (isDarkMode) Color(0xFF121212) else BackgroundWhite
     val textColor = if (isDarkMode) Color.White else TextBlack
@@ -41,7 +41,6 @@ fun HomeScreen(
                 shadowElevation = 8.dp
             ) {
                 NavigationBar(containerColor = Color.Transparent) {
-                    // Stilovi za ikone i tekst unutar donje trake
                     val itemColors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.White,
                         selectedTextColor = Color.White,
@@ -50,18 +49,18 @@ fun HomeScreen(
                         indicatorColor = Color.Transparent
                     )
 
-                    // Glavna navigacija: Početna, Favoriti, Profil i Postavke
+                    // Navigacijske stavke
                     NavigationBarItem(
-                        selected = true,
-                        onClick = { /* Trenutni ekran */ },
+                        selected = false,
+                        onClick = onNavigateToHome,
                         icon = { Icon(Icons.Default.Home, "Početna") },
                         label = { Text("Početna") },
                         colors = itemColors
                     )
 
                     NavigationBarItem(
-                        selected = false,
-                        onClick = onNavigateToFavorites,
+                        selected = true, // Označeno jer smo na favoritima
+                        onClick = { /* Trenutni ekran */ },
                         icon = { Icon(Icons.Default.Favorite, "Favoriti") },
                         label = { Text("Favoriti") },
                         colors = itemColors
@@ -86,7 +85,7 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        // Sadržaj ekrana s primijenjenim dinamičkim bojama
+        // Sadržaj ekrana s favoritima
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -95,13 +94,14 @@ fun HomeScreen(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Dobrodošli u VauVau!",
+                text = "Ovdje se nalaze vaši favoriti",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = textColor
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Ovdje će uskoro biti izlog životinja.",
+                text = "Trenutno nemate spremljenih oglasa.",
                 color = if (isDarkMode) Color.Gray else TextGray
             )
         }

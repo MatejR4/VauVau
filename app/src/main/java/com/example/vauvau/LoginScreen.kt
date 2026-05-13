@@ -1,8 +1,11 @@
 package com.example.vauvau
 
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -15,30 +18,41 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Boje
-val BackgroundWhite = Color(0xFFFAFAFA)
-val PastelRed = Color(0xFFFF9AA2)
-val TextBlack = Color(0xFF2D2D2D)
-val TextGray = Color(0xFF888888)
-val OutlineGray = Color(0xFFE0E0E0)
+
 
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit) {
+    // remember i mutableStateOf omogućuju spremanje unosa korisnika tijekom rekompozicije
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(BackgroundWhite).padding(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundWhite)
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Dobrodošli nazad", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextBlack)
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.dog_animation))
+        LottieAnimation(
+            composition = composition,
+            iterations = LottieConstants.IterateForever,
+            modifier = Modifier.size(200.dp)
+        )
+        Text(
+            text = "Dobrodošli nazad",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextBlack
+        )
+
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Polje za unos e-mail adrese
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -48,21 +62,30 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Polje za unos lozinke sa skrivenim tekstom
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Lozinka") },
             leadingIcon = { Icon(Icons.Default.Lock, null, tint = PastelRed) },
+            // PasswordVisualTransformation maskira unos (točkice umjesto slova)
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
+
         Spacer(modifier = Modifier.height(32.dp))
+
+        // Gumb za prijavu koji poziva navigaciju definiranu u MainActivity
         Button(
             onClick = { onLoginSuccess() },
-            modifier = Modifier.fillMaxWidth().height(55.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(55.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PastelRed)
         ) {
             Text("PRIJAVI SE", color = Color.White, fontWeight = FontWeight.Bold)
