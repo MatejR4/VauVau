@@ -21,11 +21,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
-
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit) {
-    // remember i mutableStateOf omogućuju spremanje unosa korisnika tijekom rekompozicije
+fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToForgotPassword: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -44,7 +41,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             modifier = Modifier.size(200.dp)
         )
         Text(
-            text = "Dobrodošli nazad",
+            text = "Dobrodošli",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = TextBlack
@@ -52,7 +49,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Polje za unos e-mail adrese
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -65,30 +61,66 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Polje za unos lozinke sa skrivenim tekstom
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Lozinka") },
             leadingIcon = { Icon(Icons.Default.Lock, null, tint = PastelRed) },
-            // PasswordVisualTransformation maskira unos (točkice umjesto slova)
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Gumb za prijavu koji poziva navigaciju definiranu u MainActivity
         Button(
             onClick = { onLoginSuccess() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(55.dp),
+            modifier = Modifier.fillMaxWidth().height(55.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PastelRed)
         ) {
             Text("PRIJAVI SE", color = Color.White, fontWeight = FontWeight.Bold)
+        }
+
+        TextButton(onClick = onNavigateToForgotPassword) {
+            Text("Zaboravili ste lozinku?", color = TextGray)
+        }
+    }
+}
+
+@Composable
+fun ForgotPasswordScreen(onBack: () -> Unit) {
+    var email by remember { mutableStateOf("") }
+    var isSent by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize().background(BackgroundWhite).padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        if (!isSent) {
+            Text("Oporavak lozinke", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextBlack)
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Unesite e-mail adresu") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(
+                onClick = { if (email.isNotEmpty()) isSent = true },
+                modifier = Modifier.fillMaxWidth().height(55.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PastelRed)
+            ) {
+                Text("POŠALJI", color = Color.White, fontWeight = FontWeight.Bold)
+            }
+        } else {
+            Text("poslan je mail", fontSize = 20.sp, fontWeight = FontWeight.Medium, color = TextBlack)
+            Spacer(modifier = Modifier.height(16.dp))
+            TextButton(onClick = onBack) {
+                Text("Povratak na prijavu", color = PastelRed)
+            }
         }
     }
 }
