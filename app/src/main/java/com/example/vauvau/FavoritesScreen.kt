@@ -29,7 +29,7 @@ fun FavoritesScreen(
     favoritesList: MutableList<AnimalAd>,
     onNavigateToHome: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    onAdClick: (Int, String) -> Unit
+    onAdClick: (Int) -> Unit
 ) {
     val isDarkMode = isSystemInDarkTheme()
     val backgroundColor = if (isDarkMode) Color(0xFF121212) else BackgroundWhite
@@ -49,30 +49,9 @@ fun FavoritesScreen(
                         unselectedTextColor = Color.White.copy(alpha = 0.7f),
                         indicatorColor = Color.Transparent
                     )
-
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = onNavigateToHome,
-                        icon = { Icon(Icons.Default.Home, "Početna") },
-                        label = { Text("Početna") },
-                        colors = itemColors
-                    )
-
-                    NavigationBarItem(
-                        selected = true,
-                        onClick = { },
-                        icon = { Icon(Icons.Default.Favorite, "Favoriti") },
-                        label = { Text("Favoriti") },
-                        colors = itemColors
-                    )
-
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = onNavigateToProfile,
-                        icon = { Icon(Icons.Default.Person, "Profil") },
-                        label = { Text("Profil") },
-                        colors = itemColors
-                    )
+                    NavigationBarItem(selected = false, onClick = onNavigateToHome, icon = { Icon(Icons.Default.Home, "Početna") }, label = { Text("Početna") }, colors = itemColors)
+                    NavigationBarItem(selected = true, onClick = { }, icon = { Icon(Icons.Default.Favorite, "Favoriti") }, label = { Text("Favoriti") }, colors = itemColors)
+                    NavigationBarItem(selected = false, onClick = onNavigateToProfile, icon = { Icon(Icons.Default.Person, "Profil") }, label = { Text("Profil") }, colors = itemColors)
                 }
             }
         }
@@ -91,65 +70,40 @@ fun FavoritesScreen(
 
             if (favoritesList.isEmpty()) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 100.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Trenutno nemate spremljenih oglasa.",
-                            color = if (isDarkMode) Color.Gray else TextGray,
-                            fontSize = 16.sp
-                        )
+                    Box(modifier = Modifier.fillMaxWidth().padding(top = 100.dp), contentAlignment = Alignment.Center) {
+                        Text(text = "Trenutno nemate spremljenih oglasa.", color = if (isDarkMode) Color.Gray else TextGray, fontSize = 16.sp)
                     }
                 }
             } else {
                 items(favoritesList) { ad ->
+                    val distance = calculateDistanceToRijeka(ad.latitude, ad.longitude)
                     OutlinedCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
-                            .clickable { onAdClick(ad.id, ad.title) }
+                            .clickable { onAdClick(ad.id) }
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(100.dp),
+                                modifier = Modifier.weight(1f).height(100.dp),
                                 verticalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(
-                                    text = ad.title,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 18.sp,
-                                    color = textColor
-                                )
-
-                                IconButton(
-                                    onClick = { favoritesList.removeAll { it.id == ad.id } },
-                                    modifier = Modifier.size(32.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Favorite,
-                                        contentDescription = "Ukloni iz favorita",
-                                        tint = PastelRed
-                                    )
+                                Column {
+                                    Text(text = ad.title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = textColor)
+                                    Text(text = "${ad.locationName} (~${distance.toInt()} km)", fontSize = 13.sp, color = TextGray)
+                                }
+                                IconButton(onClick = { favoritesList.removeAll { it.id == ad.id } }, modifier = Modifier.size(32.dp)) {
+                                    Icon(imageVector = Icons.Default.Favorite, contentDescription = null, tint = PastelRed)
                                 }
                             }
-
                             AsyncImage(
                                 model = ad.imageUrl,
-                                contentDescription = "Slika životinje",
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
+                                contentDescription = null,
+                                modifier = Modifier.size(100.dp).clip(RoundedCornerShape(8.dp)),
                                 contentScale = ContentScale.Crop
                             )
                         }

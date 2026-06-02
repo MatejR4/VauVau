@@ -13,13 +13,25 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 
-// Globalno definirane boje i klasa vidljive svuda
 val BackgroundWhite = Color(0xFFFAFAFA)
 val PastelRed = Color(0xFFFF9AA2)
 val TextBlack = Color(0xFF2D2D2D)
 val TextGray = Color(0xFF888888)
 
-data class AnimalAd(val id: Int, val title: String, val imageUrl: String)
+// Prošireni model podataka za oglas životinje
+data class AnimalAd(
+    val id: Int,
+    val title: String,
+    val imageUrl: String,
+    val name: String,
+    val type: String,       // npr. "Pas", "Mačka"
+    val locationName: String, // npr. "Zagreb"
+    val latitude: Double,
+    val longitude: Double,
+    val description: String,
+    val healthIssues: String, // Problemi i bolesti
+    val personality: String   // Osobnost
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,8 +62,8 @@ class MainActivity : ComponentActivity() {
                             favoritesList = favoritesList,
                             onNavigateToFavorites = { navController.navigate("favorites") },
                             onNavigateToProfile = { navController.navigate("profile") },
-                            onAdClick = { adId, adTitle ->
-                                navController.navigate("listing/$adId/$adTitle")
+                            onAdClick = { adId ->
+                                navController.navigate("listing/$adId")
                             }
                         )
                     }
@@ -61,8 +73,8 @@ class MainActivity : ComponentActivity() {
                             favoritesList = favoritesList,
                             onNavigateToHome = { navController.navigate("home") },
                             onNavigateToProfile = { navController.navigate("profile") },
-                            onAdClick = { adId, adTitle ->
-                                navController.navigate("listing/$adId/$adTitle")
+                            onAdClick = { adId ->
+                                navController.navigate("listing/$adId")
                             }
                         )
                     }
@@ -75,17 +87,12 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(
-                        route = "listing/{adId}/{adTitle}",
-                        arguments = listOf(
-                            navArgument("adId") { type = NavType.IntType },
-                            navArgument("adTitle") { type = NavType.StringType }
-                        )
+                        route = "listing/{adId}",
+                        arguments = listOf(navArgument("adId") { type = NavType.IntType })
                     ) { backStackEntry ->
                         val adId = backStackEntry.arguments?.getInt("adId") ?: 0
-                        val adTitle = backStackEntry.arguments?.getString("adTitle") ?: ""
                         ListingScreen(
                             adId = adId,
-                            adTitle = adTitle,
                             onBack = { navController.popBackStack() }
                         )
                     }

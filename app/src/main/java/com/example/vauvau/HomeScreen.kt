@@ -12,8 +12,9 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,6 +24,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import kotlin.math.*
+
+// Globalna funkcija za izračun udaljenosti od Rijeke pomoću Haversine formule
+fun calculateDistanceToRijeka(lat: Double, lon: Double): Double {
+    val rijekaLat = 45.327
+    val rijekaLon = 14.442
+    val r = 6371.0 // Radijus Zemlje u km
+
+    val dLat = Math.toRadians(lat - rijekaLat)
+    val dLon = Math.toRadians(lon - rijekaLon)
+
+    val a = sin(dLat / 2).pow(2) + cos(Math.toRadians(rijekaLat)) * cos(Math.toRadians(lat)) * sin(dLon / 2).pow(2)
+    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return r * c
+}
+
+// Proširena lista oglasa s pticama, kornjačama, ribama i hrčcima
+val globalAdsList = listOf(
+    AnimalAd(1, "Veseli Rex traži dom", "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=300", "Rex", "Pas", "Zagreb", 45.815, 15.981, "Rex je razigran pas koji voli loptice i trčanje.", "Nema poznatih bolesti, cijepljen.", "Vrlo prijateljski nastrojen, privržen obitelji."),
+    AnimalAd(2, "Maza Luna čeka vas", "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300", "Luna", "Mačka", "Pula", 44.866, 13.849, "Luna je mirna mačka koja najviše voli spavati u krilu.", "Lagana alergija na hranu sa žitaricama.", "Tiha, umiljata i samostalna."),
+    AnimalAd(3, "Gari traži obitelj", "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=300", "Gari", "Mačka", "Split", 43.514, 16.441, "Gari je mlad i znatiželjan mačak, spašen s ulice.", "Pregledan, potpuno zdrav.", "Energičan, voli istraživati."),
+    AnimalAd(4, "Papiga Kiki", "https://images.unsplash.com/photo-1522926193341-e05292f4647b?w=300", "Kiki", "Ptica", "Osijek", 45.551, 18.693, "Mlada nimfa koja voli zviždati melodije.", "Potpuno zdrava.", "Vrlo vokalna i društvena."),
+    AnimalAd(5, "Brza Kornjača", "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=300", "Korni", "Kornjača", "Rijeka", 45.327, 14.442, "Vodena kornjača stara 2 godine.", "Potreban veći akvarij sa svjetiljkom.", "Mirna i voli se sunčati."),
+    AnimalAd(6, "Zlatna ribica", "https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=300", "Zlatko", "Riba", "Zadar", 44.119, 15.231, "Prekrasna zlatna ribica dugih peraja.", "Zdrava, jede specijaliziranu hranu.", "Tiha, izvrstan kućni ljubimac za stan."),
+    AnimalAd(7, "Slatki Hrčak", "https://images.unsplash.com/photo-1425082661705-1834bfd0999c?w=300", "Lujo", "Hrčak", "Karlovac", 45.492, 15.555, "Sirijski hrčak koji obožava trčati u kolutu.", "Zdrav.", "Aktivan uglavnom noću.")
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,17 +57,35 @@ fun HomeScreen(
     favoritesList: MutableList<AnimalAd>,
     onNavigateToFavorites: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    onAdClick: (Int, String) -> Unit
+    onAdClick: (Int) -> Unit
 ) {
     val isDarkMode = isSystemInDarkTheme()
     val backgroundColor = if (isDarkMode) Color(0xFF121212) else BackgroundWhite
     val textColor = if (isDarkMode) Color.White else TextBlack
 
-    val allAds = listOf(
-        AnimalAd(1, "Oglas životinje 1", "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150"),
-        AnimalAd(2, "Oglas životinje 2", "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150"),
-        AnimalAd(3, "Oglas životinje 3", "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=150")
-    )
+    // --- STANJA ZA FILTERE ---
+    var showFilterMenu by remember { mutableStateOf(false) }
+
+    // Vrsta ljubimca Dropdown
+    val petTypes = listOf("Sve", "Pas", "Mačka", "Ptica", "Kornjača", "Riba", "Hrčak")
+    var selectedTypeFilter by remember { mutableStateOf("Sve") }
+    var expandedTypeDropdown by remember { mutableStateOf(false) }
+
+    // Udaljenost (Slider s točnim koracima)
+    // Udaljenost (Slider s točnim koracima)
+    val distanceStepsValues = listOf(25, 50, 75, 100, 150, 200, 2000)
+    val distanceStepsLabels = listOf("25 km", "50 km", "75 km", "100 km", "150 km", "200 km", "Sve")
+    var sliderPosition by remember { mutableStateOf(6f) } // Default je 6 (što odgovara indeksu za "Sve")
+
+    // Filtriranje liste
+    val filteredAds = globalAdsList.filter { ad ->
+        val distance = calculateDistanceToRijeka(ad.latitude, ad.longitude)
+        val matchesType = selectedTypeFilter == "Sve" || ad.type == selectedTypeFilter
+        val currentMaxDistance = distanceStepsValues[sliderPosition.toInt()]
+        val matchesDistance = currentMaxDistance == Int.MAX_VALUE || distance <= currentMaxDistance
+
+        matchesType && matchesDistance
+    }
 
     Scaffold(
         topBar = {
@@ -56,102 +101,177 @@ fun HomeScreen(
                         unselectedTextColor = Color.White.copy(alpha = 0.7f),
                         indicatorColor = Color.Transparent
                     )
-
-                    NavigationBarItem(
-                        selected = true,
-                        onClick = { },
-                        icon = { Icon(Icons.Default.Home, "Početna") },
-                        label = { Text("Početna") },
-                        colors = itemColors
-                    )
-
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = onNavigateToFavorites,
-                        icon = { Icon(Icons.Default.Favorite, "Favoriti") },
-                        label = { Text("Favoriti") },
-                        colors = itemColors
-                    )
-
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = onNavigateToProfile,
-                        icon = { Icon(Icons.Default.Person, "Profil") },
-                        label = { Text("Profil") },
-                        colors = itemColors
-                    )
+                    NavigationBarItem(selected = true, onClick = { }, icon = { Icon(Icons.Default.Home, "Početna") }, label = { Text("Početna") }, colors = itemColors)
+                    NavigationBarItem(selected = false, onClick = onNavigateToFavorites, icon = { Icon(Icons.Default.Favorite, "Favoriti") }, label = { Text("Favoriti") }, colors = itemColors)
+                    NavigationBarItem(selected = false, onClick = onNavigateToProfile, icon = { Icon(Icons.Default.Person, "Profil") }, label = { Text("Profil") }, colors = itemColors)
                 }
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(backgroundColor)
-                .padding(16.dp)
-        ) {
-            item {
-                Text("Dobrodošli u VauVau!", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textColor)
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
-            items(allAds) { ad ->
-                val isFavorited = favoritesList.any { it.id == ad.id }
-
-                // Koristimo običan OutlinedCard s Modifier.clickable kako bi izbjegli M3 crash presretače
-                OutlinedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clickable { onAdClick(ad.id, ad.title) }
-                ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(backgroundColor)
+                    .padding(16.dp)
+            ) {
+                item {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(100.dp),
-                            verticalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = ad.title,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 18.sp,
-                                color = textColor
-                            )
+                        Text("Dobrodošli u VauVau!", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = textColor)
 
-                            IconButton(
-                                onClick = {
-                                    if (isFavorited) {
-                                        favoritesList.removeAll { it.id == ad.id }
-                                    } else {
-                                        favoritesList.add(ad)
-                                    }
-                                },
-                                modifier = Modifier.size(32.dp)
+                        // Gumb za otvaranje filtera
+                        Button(
+                            onClick = { showFilterMenu = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = PastelRed)
+                        ) {
+                            Icon(Icons.Default.List, contentDescription = null, tint = Color.White)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Filteri", color = Color.White)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                if (filteredAds.isEmpty()) {
+                    item {
+                        Text(
+                            text = "Nema životinja koje odgovaraju vašim filterima.",
+                            color = TextGray,
+                            modifier = Modifier.padding(top = 32.dp)
+                        )
+                    }
+                } else {
+                    items(filteredAds) { ad ->
+                        val isFavorited = favoritesList.any { it.id == ad.id }
+                        val distance = calculateDistanceToRijeka(ad.latitude, ad.longitude)
+
+                        OutlinedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                                .clickable { onAdClick(ad.id) }
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = if (isFavorited) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                    contentDescription = "Favorit",
-                                    tint = PastelRed
+                                Column(
+                                    modifier = Modifier.weight(1f).height(115.dp),
+                                    verticalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column {
+                                        Text(text = ad.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
+                                        Text(text = "${ad.type} • ${ad.locationName} (~${distance.toInt()} km)", fontSize = 13.sp, color = TextGray)
+                                    }
+
+                                    IconButton(
+                                        onClick = {
+                                            if (isFavorited) favoritesList.removeAll { it.id == ad.id }
+                                            else favoritesList.add(ad)
+                                        },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isFavorited) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                            contentDescription = null,
+                                            tint = PastelRed
+                                        )
+                                    }
+                                }
+
+                                AsyncImage(
+                                    model = ad.imageUrl,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(100.dp).clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop
                                 )
                             }
                         }
+                    }
+                }
+            }
 
-                        AsyncImage(
-                            model = ad.imageUrl,
-                            contentDescription = "Slika životinje",
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
+            // MODALNI BOTTOM SHEET ZA FILTERE
+            if (showFilterMenu) {
+                ModalBottomSheet(
+                    onDismissRequest = { showFilterMenu = false },
+                    containerColor = if (isDarkMode) Color(0xFF1E1E1E) else Color.White
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                    ) {
+                        Text("Mogućnosti filtriranja", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textColor)
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Text("Vrsta kućnog ljubimca:", fontWeight = FontWeight.Bold, color = textColor)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Padajući izbornik za vrste ljubimaca
+                        ExposedDropdownMenuBox(
+                            expanded = expandedTypeDropdown,
+                            onExpandedChange = { expandedTypeDropdown = !expandedTypeDropdown }
+                        ) {
+                            OutlinedTextField(
+                                value = selectedTypeFilter,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTypeDropdown) },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = PastelRed,
+                                    unfocusedBorderColor = Color.LightGray,
+                                    focusedTextColor = textColor,
+                                    unfocusedTextColor = textColor
+                                )
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedTypeDropdown,
+                                onDismissRequest = { expandedTypeDropdown = false },
+                                modifier = Modifier.background(if (isDarkMode) Color(0xFF2D2D2D) else Color.White)
+                            ) {
+                                petTypes.forEach { type ->
+                                    DropdownMenuItem(
+                                        text = { Text(type, color = textColor) },
+                                        onClick = {
+                                            selectedTypeFilter = type
+                                            expandedTypeDropdown = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Text("Maksimalna udaljenost (od vas):", fontWeight = FontWeight.Bold, color = textColor)
+                        val currentDistanceLabel = distanceStepsLabels[sliderPosition.toInt()]
+
+                        Text(currentDistanceLabel, color = PastelRed, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(top = 4.dp))
+
+                        // Slider sa specifičnim prekidima (koracima)
+                        Slider(
+                            value = sliderPosition,
+                            onValueChange = { sliderPosition = it },
+                            valueRange = 0f..6f, // Indeksi idu od 0 do 6 (ukupno 7 točaka)
+                            steps = 5,           // Točno 5 unutarnjih koraka (1, 2, 3, 4, 5) između 0 i 6
+                            colors = SliderDefaults.colors(
+                                thumbColor = PastelRed,
+                                activeTrackColor = PastelRed,
+                                activeTickColor = Color.White
+                            )
                         )
+
+                        Spacer(modifier = Modifier.height(48.dp)) // Dodatan prostor na dnu zbog mobilnih gesta
                     }
                 }
             }
