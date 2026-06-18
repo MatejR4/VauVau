@@ -26,11 +26,10 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlin.math.*
 
-// Globalna funkcija za izračun udaljenosti od Rijeke pomoću Haversine formule
 fun calculateDistanceToRijeka(lat: Double, lon: Double): Double {
     val rijekaLat = 45.327
     val rijekaLon = 14.442
-    val r = 6371.0 // Radijus Zemlje u km
+    val r = 6371.0
 
     val dLat = Math.toRadians(lat - rijekaLat)
     val dLon = Math.toRadians(lon - rijekaLon)
@@ -40,49 +39,43 @@ fun calculateDistanceToRijeka(lat: Double, lon: Double): Double {
     return r * c
 }
 
-// Proširena lista oglasa s pticama, kornjačama, ribama i hrčcima
-val globalAdsList = listOf(
-    AnimalAd(1, "Veseli Rex traži dom", "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=300", "Rex", "Pas", "Zagreb", 45.815, 15.981, "Rex je razigran pas koji voli loptice i trčanje.", "Nema poznatih bolesti, cijepljen.", "Vrlo prijateljski nastrojen, privržen obitelji."),
-    AnimalAd(2, "Maza Luna čeka vas", "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300", "Luna", "Mačka", "Pula", 44.866, 13.849, "Luna je mirna mačka koja najviše voli spavati u krilu.", "Lagana alergija na hranu sa žitaricama.", "Tiha, umiljata i samostalna."),
-    AnimalAd(3, "Gari traži obitelj", "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=300", "Gari", "Mačka", "Split", 43.514, 16.441, "Gari je mlad i znatiželjan mačak, spašen s ulice.", "Pregledan, potpuno zdrav.", "Energičan, voli istraživati."),
-    AnimalAd(4, "Papiga Kiki", "https://images.unsplash.com/photo-1522926193341-e05292f4647b?w=300", "Kiki", "Ptica", "Osijek", 45.551, 18.693, "Mlada nimfa koja voli zviždati melodije.", "Potpuno zdrava.", "Vrlo vokalna i društvena."),
-    AnimalAd(5, "Brza Kornjača", "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=300", "Korni", "Kornjača", "Rijeka", 45.327, 14.442, "Vodena kornjača stara 2 godine.", "Potreban veći akvarij sa svjetiljkom.", "Mirna i voli se sunčati."),
-    AnimalAd(6, "Zlatna ribica", "https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=300", "Zlatko", "Riba", "Zadar", 44.119, 15.231, "Prekrasna zlatna ribica dugih peraja.", "Zdrava, jede specijaliziranu hranu.", "Tiha, izvrstan kućni ljubimac za stan."),
-    AnimalAd(7, "Slatki Hrčak", "https://images.unsplash.com/photo-1425082661705-1834bfd0999c?w=300", "Lujo", "Hrčak", "Karlovac", 45.492, 15.555, "Sirijski hrčak koji obožava trčati u kolutu.", "Zdrav.", "Aktivan uglavnom noću.")
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     favoritesList: MutableList<AnimalAd>,
     onNavigateToFavorites: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    onAdClick: (Int) -> Unit
+    onAdClick: (String) -> Unit
 ) {
     val isDarkMode = isSystemInDarkTheme()
     val backgroundColor = if (isDarkMode) Color(0xFF121212) else BackgroundWhite
     val textColor = if (isDarkMode) Color.White else TextBlack
 
-    // --- STANJA ZA FILTERE ---
+    // --- FIREBASE INTEGRACIJA ---
+    val repo = remember { FirestoreRepository() }
+    var adsList by remember { mutableStateOf<List<AnimalAd>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        repo.dohvatiOglase { dohvaceniOglasi ->
+            adsList = dohvaceniOglasi
+        }
+    }
+
     var showFilterMenu by remember { mutableStateOf(false) }
 
-    // Vrsta ljubimca Dropdown
     val petTypes = listOf("Sve", "Pas", "Mačka", "Ptica", "Kornjača", "Riba", "Hrčak")
     var selectedTypeFilter by remember { mutableStateOf("Sve") }
     var expandedTypeDropdown by remember { mutableStateOf(false) }
 
-    // Udaljenost (Slider s točnim koracima)
-    // Udaljenost (Slider s točnim koracima)
     val distanceStepsValues = listOf(25, 50, 75, 100, 150, 200, 2000)
     val distanceStepsLabels = listOf("25 km", "50 km", "75 km", "100 km", "150 km", "200 km", "Sve")
-    var sliderPosition by remember { mutableStateOf(6f) } // Default je 6 (što odgovara indeksu za "Sve")
+    var sliderPosition by remember { mutableStateOf(6f) }
 
-    // Filtriranje liste
-    val filteredAds = globalAdsList.filter { ad ->
+    val filteredAds = adsList.filter { ad ->
         val distance = calculateDistanceToRijeka(ad.latitude, ad.longitude)
         val matchesType = selectedTypeFilter == "Sve" || ad.type == selectedTypeFilter
         val currentMaxDistance = distanceStepsValues[sliderPosition.toInt()]
-        val matchesDistance = currentMaxDistance == Int.MAX_VALUE || distance <= currentMaxDistance
+        val matchesDistance = currentMaxDistance == 2000 || distance <= currentMaxDistance
 
         matchesType && matchesDistance
     }
@@ -124,7 +117,6 @@ fun HomeScreen(
                     ) {
                         Text("Dobrodošli u VauVau!", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = textColor)
 
-                        // Gumb za otvaranje filtera
                         Button(
                             onClick = { showFilterMenu = true },
                             colors = ButtonDefaults.buttonColors(containerColor = PastelRed)
@@ -140,7 +132,7 @@ fun HomeScreen(
                 if (filteredAds.isEmpty()) {
                     item {
                         Text(
-                            text = "Nema životinja koje odgovaraju vašim filterima.",
+                            text = "Nema učitanih životinja.",
                             color = TextGray,
                             modifier = Modifier.padding(top = 32.dp)
                         )
@@ -197,7 +189,6 @@ fun HomeScreen(
                 }
             }
 
-            // MODALNI BOTTOM SHEET ZA FILTERE
             if (showFilterMenu) {
                 ModalBottomSheet(
                     onDismissRequest = { showFilterMenu = false },
@@ -214,7 +205,6 @@ fun HomeScreen(
                         Text("Vrsta kućnog ljubimca:", fontWeight = FontWeight.Bold, color = textColor)
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Padajući izbornik za vrste ljubimaca
                         ExposedDropdownMenuBox(
                             expanded = expandedTypeDropdown,
                             onExpandedChange = { expandedTypeDropdown = !expandedTypeDropdown }
@@ -258,12 +248,11 @@ fun HomeScreen(
 
                         Text(currentDistanceLabel, color = PastelRed, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(top = 4.dp))
 
-                        // Slider sa specifičnim prekidima (koracima)
                         Slider(
                             value = sliderPosition,
                             onValueChange = { sliderPosition = it },
-                            valueRange = 0f..6f, // Indeksi idu od 0 do 6 (ukupno 7 točaka)
-                            steps = 5,           // Točno 5 unutarnjih koraka (1, 2, 3, 4, 5) između 0 i 6
+                            valueRange = 0f..6f,
+                            steps = 5,
                             colors = SliderDefaults.colors(
                                 thumbColor = PastelRed,
                                 activeTrackColor = PastelRed,
@@ -271,7 +260,7 @@ fun HomeScreen(
                             )
                         )
 
-                        Spacer(modifier = Modifier.height(48.dp)) // Dodatan prostor na dnu zbog mobilnih gesta
+                        Spacer(modifier = Modifier.height(48.dp))
                     }
                 }
             }

@@ -29,7 +29,7 @@ fun FavoritesScreen(
     favoritesList: MutableList<AnimalAd>,
     onNavigateToHome: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    onAdClick: (Int) -> Unit
+    onAdClick: (String) -> Unit
 ) {
     val isDarkMode = isSystemInDarkTheme()
     val backgroundColor = if (isDarkMode) Color(0xFF121212) else BackgroundWhite

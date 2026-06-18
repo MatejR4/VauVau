@@ -18,19 +18,19 @@ val PastelRed = Color(0xFFFF9AA2)
 val TextBlack = Color(0xFF2D2D2D)
 val TextGray = Color(0xFF888888)
 
-// Prošireni model podataka za oglas životinje
+// Prilagođeni model podataka za Firebase
 data class AnimalAd(
-    val id: Int,
-    val title: String,
-    val imageUrl: String,
-    val name: String,
-    val type: String,       // npr. "Pas", "Mačka"
-    val locationName: String, // npr. "Zagreb"
-    val latitude: Double,
-    val longitude: Double,
-    val description: String,
-    val healthIssues: String, // Problemi i bolesti
-    val personality: String   // Osobnost
+    var id: String = "",
+    val title: String = "",
+    val imageUrl: String = "",
+    val name: String = "",
+    val type: String = "",
+    val locationName: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val description: String = "",
+    val healthIssues: String = "",
+    val personality: String = ""
 )
 
 class MainActivity : ComponentActivity() {
@@ -88,9 +88,9 @@ class MainActivity : ComponentActivity() {
 
                     composable(
                         route = "listing/{adId}",
-                        arguments = listOf(navArgument("adId") { type = NavType.IntType })
+                        arguments = listOf(navArgument("adId") { type = NavType.StringType })
                     ) { backStackEntry ->
-                        val adId = backStackEntry.arguments?.getInt("adId") ?: 0
+                        val adId = backStackEntry.arguments?.getString("adId") ?: ""
                         ListingScreen(
                             adId = adId,
                             onBack = { navController.popBackStack() }
