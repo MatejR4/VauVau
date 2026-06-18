@@ -17,7 +17,7 @@ class ListingScreenTest {
         // Pokrećemo SAMO ListingScreen, ne cijelu aplikaciju (to je poanta Medium testa)
         composeTestRule.setContent {
             // Prosljeđujemo ID 1 (znamo da je to Pas Rex iz globalAdsList)
-            ListingScreen(adId = 1, onBack = {})
+            ListingScreen(adId = "1", onBack = {})
         }
 
         // Testiramo jesu li se podaci iz baze (liste) ispravno proslijedili u UI
