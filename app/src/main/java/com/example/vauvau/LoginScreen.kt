@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToForgotPassword: () -> Unit) {
+fun LoginScreen(
+    onLoginSuccess: (username: String, email: String) -> Unit, // Šalje oba podatka nakon prijave
+    onNavigateToForgotPassword: () -> Unit
+) {
+    var usernameInput by remember { mutableStateOf("") } // Novo polje za korisničko ime
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -38,13 +43,25 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToForgotPassword: () -> Un
         LottieAnimation(
             composition = composition,
             iterations = LottieConstants.IterateForever,
-            modifier = Modifier.size(200.dp)
+            modifier = Modifier.size(160.dp) // Malo smanjena animacija da sve stane bez skrolanja
         )
         Text(
             text = "Dobrodošli",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = TextBlack
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Novo unijeto polje za Korisničko ime
+        OutlinedTextField(
+            value = usernameInput,
+            onValueChange = { usernameInput = it },
+            label = { Text("Korisničko ime (opcionalno)") },
+            leadingIcon = { Icon(Icons.Default.Person, null, tint = PastelRed) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -59,7 +76,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToForgotPassword: () -> Un
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = password,
@@ -72,10 +89,10 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToForgotPassword: () -> Un
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = { onLoginSuccess() },
+            onClick = { onLoginSuccess(usernameInput, email) }, // Proslijeđuje uneseni tekst
             modifier = Modifier.fillMaxWidth().height(55.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PastelRed)
         ) {

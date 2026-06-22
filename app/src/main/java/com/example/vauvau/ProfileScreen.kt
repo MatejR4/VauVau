@@ -1,10 +1,8 @@
 package com.example.vauvau
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
@@ -27,21 +25,30 @@ fun ProfileScreen(
     onNavigateToHome: () -> Unit,
     onNavigateToFavorites: () -> Unit,
     onNavigateToAddAd: () -> Unit,
+    loggedInUsername: String = "",
+    loggedInEmail: String = ""
 ) {
     val isDarkMode = isSystemInDarkTheme()
     val backgroundColor = if (isDarkMode) Color(0xFF121212) else BackgroundWhite
     val textColor = if (isDarkMode) Color.White else TextBlack
     val cardBackground = if (isDarkMode) Color(0xFF1E1E1E) else Color(0xFFF0F0F0)
 
-    // Stanja za promjenu korisničkog imena
-    var username by remember { mutableStateOf("Korisnik123") }
-    var showDialog by remember { mutableStateOf(false) }
+    var username by remember {
+        mutableStateOf(if (loggedInUsername.isNotBlank()) loggedInUsername else "Korisnik123")
+    }
+    var emailState by remember {
+        mutableStateOf(if (loggedInEmail.isNotBlank()) loggedInEmail else "korisnik@vauvau.com")
+    }
+
+    var showNameDialog by remember { mutableStateOf(false) }
     var tempUsername by remember { mutableStateOf("") }
 
-    // Dijaloški okvir za uređivanje imena
-    if (showDialog) {
+    var showEmailDialog by remember { mutableStateOf(false) }
+    var tempEmail by remember { mutableStateOf("") }
+
+    if (showNameDialog) {
         AlertDialog(
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = { showNameDialog = false },
             title = { Text("Promijeni korisničko ime", fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
@@ -58,7 +65,7 @@ fun ProfileScreen(
                         if (tempUsername.isNotBlank()) {
                             username = tempUsername
                         }
-                        showDialog = false
+                        showNameDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = PastelRed)
                 ) {
@@ -66,7 +73,41 @@ fun ProfileScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
+                TextButton(onClick = { showNameDialog = false }) {
+                    Text("Odustani", color = TextGray)
+                }
+            }
+        )
+    }
+
+    if (showEmailDialog) {
+        AlertDialog(
+            onDismissRequest = { showEmailDialog = false },
+            title = { Text("Promijeni e-mail adresu", fontWeight = FontWeight.Bold) },
+            text = {
+                OutlinedTextField(
+                    value = tempEmail,
+                    onValueChange = { tempEmail = it },
+                    label = { Text("Novi e-mail") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (tempEmail.isNotBlank()) {
+                            emailState = tempEmail
+                        }
+                        showEmailDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PastelRed)
+                ) {
+                    Text("Spremi", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEmailDialog = false }) {
                     Text("Odustani", color = TextGray)
                 }
             }
@@ -113,7 +154,7 @@ fun ProfileScreen(
                     )
                     NavigationBarItem(
                         selected = true,
-                        onClick = { /* Trenutni ekran */ },
+                        onClick = { },
                         icon = { Icon(Icons.Default.Person, "Profil") },
                         label = { Text("Profil") },
                         colors = itemColors
@@ -129,7 +170,6 @@ fun ProfileScreen(
                 .background(backgroundColor)
                 .padding(16.dp)
         ) {
-            // Istaknuta kartica s korisničkim podacima
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = cardBackground),
@@ -144,7 +184,6 @@ fun ProfileScreen(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
-                    // Redak s korisničkim imenom i ikonom olovke za uređivanje
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -166,7 +205,7 @@ fun ProfileScreen(
                         IconButton(
                             onClick = {
                                 tempUsername = username
-                                showDialog = true
+                                showNameDialog = true
                             }
                         ) {
                             Icon(
@@ -180,7 +219,6 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Redak s e-mail adresom
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -193,52 +231,25 @@ fun ProfileScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "korisnik@vauvau.hr",
+                            text = emailState,
                             fontSize = 16.sp,
                             color = if (isDarkMode) Color.LightGray else TextGray,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.weight(1f)
                         )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Sekcija "Vaši oglasi"
-            Text(
-                text = "Vaši oglasi",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Popravljena kartica - uklonjen onClick iz parametara i dodan klik preko modifiera
-            OutlinedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { /* Navigacija na detalje ovog oglasa */ }
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        Text(
-                            text = "Oglas životinje 1",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = PastelRed
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Kliknite za pregled ili uređivanje detalja",
-                            fontSize = 14.sp,
-                            color = TextGray
-                        )
+                        IconButton(
+                            onClick = {
+                                tempEmail = emailState
+                                showEmailDialog = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Uredi e-mail",
+                                tint = TextGray,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }

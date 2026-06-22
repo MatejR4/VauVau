@@ -51,9 +51,11 @@ fun AddAdScreen(
     var latitude by remember { mutableStateOf("") }
     var longitude by remember { mutableStateOf("") }
 
-    // Novo stanje za URL slike s interneta
     var imageUrl by remember { mutableStateOf("") }
     var isSaving by remember { mutableStateOf(false) }
+
+    val zivotinje = listOf("Pas", "Macka", "Hrcak", "Ptica")
+    var expanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -167,7 +169,44 @@ fun AddAdScreen(
             // Ostala tekstualna polja
             OutlinedTextField(enabled = !isSaving, value = title, onValueChange = { title = it }, label = { Text("Naslov oglasa") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(enabled = !isSaving, value = name, onValueChange = { name = it }, label = { Text("Ime životinje") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(enabled = !isSaving, value = type, onValueChange = { type = it }, label = { Text("Vrsta (npr. Pas, Mačka)") }, modifier = Modifier.fillMaxWidth())
+            // Padajući izbornik za odabir vrste životinje
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { if (!isSaving) expanded = !expanded }
+            ) {
+                OutlinedTextField(
+                    value = type,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Vrsta životinje") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    enabled = !isSaving,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PastelRed,
+                        unfocusedBorderColor = Color.LightGray,
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor
+                    )
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(if (isDarkMode) Color(0xFF2D2D2D) else Color.White)
+                ) {
+                    zivotinje.forEach { zivotinja ->
+                        DropdownMenuItem(
+                            text = { Text(zivotinja, color = textColor) },
+                            onClick = {
+                                type = zivotinja
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
             OutlinedTextField(enabled = !isSaving, value = locationName, onValueChange = { locationName = it }, label = { Text("Lokacija (Grad)") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(enabled = !isSaving, value = description, onValueChange = { description = it }, label = { Text("Opis") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
             OutlinedTextField(enabled = !isSaving, value = personality, onValueChange = { personality = it }, label = { Text("Osobnost") }, modifier = Modifier.fillMaxWidth())

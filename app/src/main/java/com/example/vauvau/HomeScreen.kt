@@ -65,7 +65,7 @@ fun HomeScreen(
 
     var showFilterMenu by remember { mutableStateOf(false) }
 
-    val petTypes = listOf("Sve", "Pas", "Mačka", "Ptica", "Kornjača", "Riba", "Hrčak")
+    val petTypes = listOf("Sve", "Pas", "Macka", "Hrcak", "Ptica")
     var selectedTypeFilter by remember { mutableStateOf("Sve") }
     var expandedTypeDropdown by remember { mutableStateOf(false) }
 

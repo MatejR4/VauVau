@@ -7,10 +7,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.NavType
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
 import androidx.navigation.navArgument
 
 val BackgroundWhite = Color(0xFFFAFAFA)
@@ -41,10 +44,17 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val favoritesList = remember { mutableStateListOf<AnimalAd>() }
 
+                // VARIJABLE SU SADA OVDJE: Iznad NavHost-a!
+                var spremljenoIme by remember { mutableStateOf("") }
+                var spremljeniEmail by remember { mutableStateOf("") }
+
                 NavHost(navController = navController, startDestination = "login") {
+
                     composable("login") {
                         LoginScreen(
-                            onLoginSuccess = {
+                            onLoginSuccess = { username, email ->
+                                spremljenoIme = username
+                                spremljeniEmail = email
                                 navController.navigate("home") {
                                     popUpTo("login") { inclusive = true }
                                 }
@@ -61,7 +71,7 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             favoritesList = favoritesList,
                             onNavigateToFavorites = { navController.navigate("favorites") },
-                            onNavigateToAddAd = { navController.navigate("add_ad") }, // POPRAVLJENO OVDJE
+                            onNavigateToAddAd = { navController.navigate("add_ad") },
                             onNavigateToProfile = { navController.navigate("profile") },
                             onAdClick = { adId ->
                                 navController.navigate("listing/$adId")
@@ -73,7 +83,7 @@ class MainActivity : ComponentActivity() {
                         FavoritesScreen(
                             favoritesList = favoritesList,
                             onNavigateToHome = { navController.navigate("home") },
-                            onNavigateToAddAd = { navController.navigate("add_ad") }, // POPRAVLJENO OVDJE
+                            onNavigateToAddAd = { navController.navigate("add_ad") },
                             onNavigateToProfile = { navController.navigate("profile") },
                             onAdClick = { adId ->
                                 navController.navigate("listing/$adId")
@@ -97,8 +107,10 @@ class MainActivity : ComponentActivity() {
                     composable("profile") {
                         ProfileScreen(
                             onNavigateToHome = { navController.navigate("home") },
+                            onNavigateToFavorites = { navController.navigate("favorites") },
                             onNavigateToAddAd = { navController.navigate("add_ad") },
-                            onNavigateToFavorites = { navController.navigate("favorites") }
+                            loggedInUsername = spremljenoIme,
+                            loggedInEmail = spremljeniEmail
                         )
                     }
 
