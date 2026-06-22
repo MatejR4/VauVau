@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,7 +25,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ProfileScreen(
     onNavigateToHome: () -> Unit,
-    onNavigateToFavorites: () -> Unit
+    onNavigateToFavorites: () -> Unit,
+    onNavigateToAddAd: () -> Unit,
 ) {
     val isDarkMode = isSystemInDarkTheme()
     val backgroundColor = if (isDarkMode) Color(0xFF121212) else BackgroundWhite
@@ -100,6 +102,13 @@ fun ProfileScreen(
                         onClick = onNavigateToFavorites,
                         icon = { Icon(Icons.Default.Favorite, "Favoriti") },
                         label = { Text("Favoriti") },
+                        colors = itemColors
+                    )
+                    NavigationBarItem(
+                        selected = false,
+                        onClick = onNavigateToAddAd,
+                        icon = { Icon(Icons.Default.Add, "Dodaj") },
+                        label = { Text("Dodaj") },
                         colors = itemColors
                     )
                     NavigationBarItem(

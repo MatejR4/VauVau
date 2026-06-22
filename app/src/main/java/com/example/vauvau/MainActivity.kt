@@ -61,6 +61,7 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             favoritesList = favoritesList,
                             onNavigateToFavorites = { navController.navigate("favorites") },
+                            onNavigateToAddAd = { navController.navigate("add_ad") }, // POPRAVLJENO OVDJE
                             onNavigateToProfile = { navController.navigate("profile") },
                             onAdClick = { adId ->
                                 navController.navigate("listing/$adId")
@@ -72,6 +73,7 @@ class MainActivity : ComponentActivity() {
                         FavoritesScreen(
                             favoritesList = favoritesList,
                             onNavigateToHome = { navController.navigate("home") },
+                            onNavigateToAddAd = { navController.navigate("add_ad") }, // POPRAVLJENO OVDJE
                             onNavigateToProfile = { navController.navigate("profile") },
                             onAdClick = { adId ->
                                 navController.navigate("listing/$adId")
@@ -79,9 +81,23 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    composable("add_ad") {
+                        AddAdScreen(
+                            onNavigateToHome = { navController.navigate("home") },
+                            onNavigateToFavorites = { navController.navigate("favorites") },
+                            onNavigateToProfile = { navController.navigate("profile") },
+                            onSaveSuccess = {
+                                navController.navigate("home") {
+                                    popUpTo("home") { inclusive = false }
+                                }
+                            }
+                        )
+                    }
+
                     composable("profile") {
                         ProfileScreen(
                             onNavigateToHome = { navController.navigate("home") },
+                            onNavigateToAddAd = { navController.navigate("add_ad") },
                             onNavigateToFavorites = { navController.navigate("favorites") }
                         )
                     }

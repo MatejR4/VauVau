@@ -58,6 +58,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
 
     // Debug
     debugImplementation(libs.androidx.compose.ui.tooling)

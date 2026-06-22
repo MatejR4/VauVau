@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -28,6 +29,7 @@ import coil.compose.AsyncImage
 fun FavoritesScreen(
     favoritesList: MutableList<AnimalAd>,
     onNavigateToHome: () -> Unit,
+    onNavigateToAddAd: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onAdClick: (String) -> Unit
 ) {
@@ -51,6 +53,7 @@ fun FavoritesScreen(
                     )
                     NavigationBarItem(selected = false, onClick = onNavigateToHome, icon = { Icon(Icons.Default.Home, "Početna") }, label = { Text("Početna") }, colors = itemColors)
                     NavigationBarItem(selected = true, onClick = { }, icon = { Icon(Icons.Default.Favorite, "Favoriti") }, label = { Text("Favoriti") }, colors = itemColors)
+                    NavigationBarItem(selected = false, onClick = onNavigateToAddAd, icon = { Icon(Icons.Default.Add, "Dodaj") }, label = { Text("Dodaj") }, colors = itemColors)
                     NavigationBarItem(selected = false, onClick = onNavigateToProfile, icon = { Icon(Icons.Default.Person, "Profil") }, label = { Text("Profil") }, colors = itemColors)
                 }
             }
